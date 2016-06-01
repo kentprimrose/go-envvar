@@ -1,0 +1,5 @@
+Gets the value of an environment variable.
+If there is no environment value with that name, return the specified default.
+If no default is specified, and no environment variable is found, return an error.
+
+Note that this differs from os.Getenv, which just returns an empty string if the value isn't found.
