@@ -1,4 +1,4 @@
-package envvar
+package goenv
 
 import (
 	"os"
@@ -19,26 +19,22 @@ func TestFound(t *testing.T) {
 	}
 
 	d := "default"
-	v, err = Getval(e, d)
-	if err != nil {
-		t.Fatalf("Getval (with default): Unexpected error - '%s'", err)
+	v, found := LookupEnv(e, d)
+	if !found {
+		t.Fatal("LookupEnv (with default): expected to find")
 	}
 	if v != o {
-		t.Fatalf("Getval (with default): '%s' but '%s' expected", v, o)
+		t.Fatalf("LookupEnv (with default): '%s' but '%s' expected", v, o)
 	}
 
-	v, err = Getval(e)
-	if err != nil {
-		t.Fatalf("Getval (without default): Unexpected error - '%s'", err)
-	}
+	v, found = LookupEnv(e)
 	if v != o {
-		t.Fatalf("Getval (without default): '%s' but '%s' expected", v, o)
+		t.Fatalf("LookupEnv (without default): '%s' but '%s' expected", v, o)
 	}
 }
 
 func TestNotFound(t *testing.T) {
 	e := "MISSING"
-	os.Clearenv()
 
 	v := os.Getenv(e)
 	if v != "" {
@@ -46,17 +42,40 @@ func TestNotFound(t *testing.T) {
 	}
 
 	d := "default"
-	v, err := Getval(e, d)
-	if err != nil {
-		t.Fatalf("Getval (with default): Unexpected error - '%s'", err)
+	v, found := LookupEnv(e, d)
+	if found {
+		t.Fatal("LookupEnv (with default): Expected not to find")
 	}
 	if v != d {
-		t.Fatalf("Getval (with default): '%s' but '%s' expected", v, d)
+		t.Fatalf("LookupEnv (with default): '%s' but '%s' expected", v, d)
 	}
 
-	v, err = Getval(e)
-	if err == nil {
-		t.Fatal("Getval (without default): Expected error")
+	v, found = LookupEnv(e)
+	if found {
+		t.Fatal("LookupEnv (without default): Expected not to find")
+	}
+}
+
+func TestEmptyVal(t *testing.T) {
+	e := "EMPTY"
+	o := ""
+	err := os.Setenv(e, o)
+	if err != nil {
+		t.Fatalf("Error setting env: %s", err.Error())
+	}
+
+	v := os.Getenv(e)
+	if v != o {
+		t.Fatalf("Getenv: '%s' but '%s' expected", v, o)
+	}
+
+	d := "default"
+	v, found := LookupEnv(e, d)
+	if !found {
+		t.Fatal("LookupEnv (with default): Expected not to find")
+	}
+	if v != o {
+		t.Fatalf("LookupEnv (with default): '%s' but '%s' expected", v, o)
 	}
 }
 
@@ -70,7 +89,7 @@ func BenchmarkFoundWithDefault(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = Getval(e, d)
+		_, _ = LookupEnv(e, d)
 	}
 }
 
@@ -83,25 +102,23 @@ func BenchmarkFoundWithoutDefault(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = Getval(e)
+		_, _ = LookupEnv(e)
 	}
 }
 
 func BenchmarkNotFoundWithDefault(b *testing.B) {
-	e := "FOUND"
+	e := "MISSING"
 	d := "default"
-	os.Clearenv()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = Getval(e, d)
+		_, _ = LookupEnv(e, d)
 	}
 }
 
 func BenchmarkNotFoundWithoutDefault(b *testing.B) {
-	e := "FOUND"
-	os.Clearenv()
+	e := "MISSING"
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = Getval(e)
+		_, _ = LookupEnv(e)
 	}
 }

@@ -1,16 +1,3 @@
-Gets the value of an environment variable.
-If there is no environment value with that name, return the specified default.
-If no default is specified, and no environment variable is found, return an error.
+Duplicates the functionality of <a href="https://golang.org/pkg/os/#LookupEnv">os.LookupEnv</a>, but adds a default value if the environment variable is not found.
 
-Note that this differs from os.Getenv, which just returns an empty string if the value isn't found.
-
-Getting existing environment variables is very efficient whether a default is specified or not. When the environment variable is not present and a default is specified, the operation takes twice as long, but is still very efficient. When the environment variable is not found and and a default is not supplied, it takes twice again as long. However, even in the worst case the operation still takes only half a micro-second on a Mac with a 2.7 GHz i5 processor, so it's really negligable - particularly for the common use case of application initialization.
-
-Benchmark results (from "go test -bench=."):
-
-	BenchmarkFoundWithDefault-4      	10000000	       125 ns/op
-	BenchmarkFoundWithoutDefault-4   	10000000	       123 ns/op
-	BenchmarkNotFoundWithDefault-4   	 5000000	       260 ns/op
-	BenchmarkNotFoundWithoutDefault-4	 3000000	       572 ns/op
-
-See envvar_test.go for examples of use.
+See envvar_test.go for examples of use and benchmarks.
